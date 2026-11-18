@@ -1,17 +1,28 @@
 import React from 'react';
-import { Composition } from 'remotion';
-import { ExplainerVideo } from './ExplainerVideo';
-import { VIDEO_CONFIG } from './theme';
+import {Composition} from 'remotion';
+import {ExplainerVideo, FPS, WIDTH, HEIGHT} from './ExplainerVideo';
+import {ExplainerVideoAR} from './ExplainerVideoAR';
+import {TOTAL_FRAMES as TOTAL_AR} from './timing-ar';
 
-export const RemotionRoot: React.FC = () => {
-  return (
+const TOTAL_EN = 3600;
+
+export const RemotionRoot: React.FC = () => (
+  <>
     <Composition
       id="PrediabetesExplainer"
       component={ExplainerVideo}
-      durationInFrames={VIDEO_CONFIG.totalFrames}
-      fps={VIDEO_CONFIG.fps}
-      width={VIDEO_CONFIG.width}
-      height={VIDEO_CONFIG.height}
+      durationInFrames={TOTAL_EN}
+      fps={FPS}
+      width={WIDTH}
+      height={HEIGHT}
     />
-  );
-};
+    <Composition
+      id="PrediabetesExplainerAR"
+      component={ExplainerVideoAR}
+      durationInFrames={TOTAL_AR}
+      fps={FPS}
+      width={WIDTH}
+      height={HEIGHT}
+    />
+  </>
+);

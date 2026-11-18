@@ -1,0 +1,64 @@
+name: Render Prediabetes Explainer Videos (English + Arabic)
+
+on:
+  workflow_dispatch:
+    inputs:
+      scale:
+        description: "Resolution: 1 = Full HD 1920x1080, 2 = 4K 3840x2160 (much slower)"
+        required: false
+        default: "1"
+        type: choice
+        options:
+          - "1"
+          - "2"
+  push:
+    branches: [main, master]
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install fonts (DejaVu Serif + Noto Arabic)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-dejavu-core fonts-dejavu-extra fonts-noto-core
+          fc-cache -f
+          fc-list :lang=ar family | sort -u | head
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Download browser for Remotion
+        run: npx remotion browser ensure
+
+      - name: Render English video
+        run: npm run build -- --scale=${{ github.event.inputs.scale || '1' }}
+
+      - name: Render Arabic video
+        run: npm run build:ar -- --scale=${{ github.event.inputs.scale || '1' }}
+
+      - name: Show video details
+        run: |
+          for f in out/*.mp4; do
+            echo "== $f"
+            ffprobe -v error -show_entries stream=codec_name,width,height,r_frame_rate -show_entries format=duration -of default=nw=1 "$f"
+          done
+
+      - name: Upload MP4 files
+        uses: actions/upload-artifact@v4
+        with:
+          name: PrediabetesExplainer-videos
+          path: out/*.mp4
+          retention-days: 14
